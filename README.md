@@ -10,7 +10,7 @@ A handy plugin to create toggleable popups.
 
 ### Requirements
 
-- tmux >= **3.4** (not tested on earlier versions)
+- tmux >= **3.9** (not tested on earlier versions)
 - Bash >= **3.2.57**
 
 > [!Note]

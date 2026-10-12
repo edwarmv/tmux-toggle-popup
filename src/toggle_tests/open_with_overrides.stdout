@@ -7,7 +7,10 @@ TMUX:BEGIN[1] {
 	-C
 	run "#{@popup-focus} --enter"
 	;
-	display-popup
+	new-pane
+	-W
+	-B
+	none
 	-e
 	TMUX_POPUP_SERVER=popup_server
 	TMUX:BEGIN[2] {

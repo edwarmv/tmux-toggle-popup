@@ -26,8 +26,18 @@ usage() {
 		  --name <name>               Popup name [Default: "$DEFAULT_NAME"]
 		  --id <id>                   Popup ID, default to the expanded ID format
 		  --toggle-key <key>          Bind additional keys to close the opened popup
-		  -[BCE]                      Flags passed to display-popup
-		  -[bcdehsStTwxy] <value>     Options passed to display-popup
+		  -B                          Hide the floating pane border
+		  -E                          Compatibility flag; follows tmux pane exit settings
+		  -b <lines>                  Border line style passed to new-pane
+		  -c <directory>              Starting directory passed to new-pane
+		  -d <directory>              Starting directory for the popup session
+		  -e <environment>            Environment passed to the popup session
+		  -h <height>                 Popup height
+		  -w <width>                  Popup width
+		  -x <position>               Horizontal position
+		  -y <position>               Vertical position
+		  -[ACDfIKLMOPvZ]             Flags passed to new-pane
+		  -[FlmpRsStT] <value>        Options passed to new-pane
 
 		Global Options:
 
@@ -43,7 +53,7 @@ usage() {
 
 		Examples:
 
-		  toggle.sh -Ed'##{pane_current_path}' --name=bash bash
+		  toggle.sh -Ed'##{pane_current_path}' -w75% -h75% --name=bash bash
 	EOF
 }
 
@@ -85,7 +95,8 @@ prepare_init() {
 	if check_hook "$on_init"; then init_cmds+=(run-shell -C "$on_init" \;); fi
 }
 
-declare name id id_format toggle_keys=() session_args=() popup_args=()
+declare name id id_format toggle_keys=() session_args=() pane_args=()
+declare borderless border_lines
 declare on_init before_open after_close toggle_mode socket_name socket_path
 declare popup_caller opened_name current_pane_id
 main() {
@@ -130,11 +141,22 @@ main() {
 	set -- "${expanded_args[@]}" # now all arguments are expanded
 
 	declare OPT OPTARG OPTIND=1
-	while getopts :-:BCEb:c:d:e:h:s:S:t:T:w:x:y: OPT; do
+	while getopts :-:ABCEb:c:d:e:F:fh:IKl:m:p:R:s:S:t:T:w:x:y:Z OPT; do
 		if [[ $OPT == '-' ]]; then OPT=${OPTARG%%=*}; fi
 		case "$OPT" in
-		[BCE]) popup_args+=("-$OPT") ;;
-		[bchsStTwxy]) popup_args+=("-$OPT" "$OPTARG") ;;
+		A | C | D | f | I | K | L | M | O | P | v | Z)
+			pane_args+=("-$OPT")
+			;;
+		B) borderless=1 ;;
+		E) ;;
+		b) border_lines=$OPTARG ;;
+		c | F | l | m | p | R | s | S | t | T)
+			pane_args+=("-$OPT" "$OPTARG")
+			;;
+		h) pane_args+=(-y "$OPTARG") ;;
+		w) pane_args+=(-x "$OPTARG") ;;
+		x) pane_args+=(-X "$OPTARG") ;;
+		y) pane_args+=(-Y "$OPTARG") ;;
 		# Forward working directory to popup sessions
 		d)
 			# Report deprecated placeholders
@@ -180,6 +202,11 @@ main() {
 		-e __tmux_popup_name="$name" # set variable to identify opened popups
 		"${@:$OPTIND}"               # forward program to start popup session
 	)
+	if [[ -n $borderless ]]; then
+		pane_args+=(-B none)
+	elif [[ -n $border_lines ]]; then
+		pane_args+=(-B "$border_lines")
+	fi
 
 	# Determine which server to start popups.
 	if [[ -n $socket_path ]]; then
@@ -209,9 +236,9 @@ main() {
 	# Handle hook: before-open
 	if check_hook "$before_open"; then open_cmds+=(run-shell -C "$before_open" \;); fi
 
-	# Add commands that actually open the popup.
+	# Add commands that create the floating pane.
 	open_cmds+=(
-		display-popup "${popup_args[@]}"
+		new-pane -W "${pane_args[@]}"
 		-e TMUX_POPUP_SERVER="$popup_server" # used to identify the popup server
 		/bin/sh -c
 		"exec $(escape tmux "${popup_socket[@]}" "${init_cmds[@]}")>/dev/null"
