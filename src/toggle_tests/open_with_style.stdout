@@ -7,15 +7,18 @@ TMUX:BEGIN[1] {
 	-C
 	run "#{@popup_before_open}"
 	;
-	display-popup
+	new-pane
+	-W
+	-X
+	10
+	-Y
+	5
 	-x
-	R
-	-y
-	P
-	-w
 	50%
-	-h
+	-y
 	70%
+	-B
+	double
 	-e
 	TMUX_POPUP_SERVER=popup_test
 	TMUX:BEGIN[2] {

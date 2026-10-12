@@ -7,7 +7,8 @@ TMUX:BEGIN[1] {
 	-C
 	run "#{@popup_before_open}"
 	;
-	display-popup
+	new-pane
+	-W
 	-e
 	TMUX_POPUP_SERVER=socket_path_server
 	TMUX:BEGIN[2] {

@@ -6,7 +6,8 @@
 	default-shell
 	/bin/sh
 	;
-	display-popup
+	new-pane
+	-W
 	>>>TMUX:BEGIN[2]
 		set
 		default-shell

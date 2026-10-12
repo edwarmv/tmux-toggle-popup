@@ -125,6 +125,7 @@ unset TMUX TMUX_POPUP_SERVER __tmux_popup_caller __tmux_popup_name
 		--on-init 'nop' \
 		--before-open 'run "#{@popup-focus} --enter"' \
 		--after-close 'run "#{@popup-focus} --leave"' \
+		-B \
 		--toggle-mode 'force-close' \
 		--socket-name 'local_socket_name' \
 		--socket-path '/local/socket_path/popup_server'
@@ -159,7 +160,7 @@ unset TMUX TMUX_POPUP_SERVER __tmux_popup_caller __tmux_popup_name
 (
 	test_name='open_with_style'
 	begin_test "$test_name" || exit 0
-	test_toggle --name='p_open_with_style' -xR -yP -w50% -h70%
+	test_toggle --name='p_open_with_style' -E -x10 -y5 -w50% -h70% -b double
 ) || exit 1
 
 (

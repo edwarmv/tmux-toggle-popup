@@ -9,10 +9,10 @@ Some terms are emphasized in italics. Most of them are referred in the this sect
 Every popup is associated with a unique tmux session, namely the *popup
 session*, specified by an ID. When you open a popup through `@popup-toggle`:
 
-1. A *popup window* is created by `display-popup`.
+1. A floating pane is created by `new-pane`.
 2. A tmux session specified by the given ID is created by `new-session` with the
    supplied program in the *popup server* if it does not already exist.
-3. Finally, the focus attaches to that session in the *popup window*.
+3. Finally, the focus attaches to that session in the floating pane.
 
 The session from which you call `@popup-toggle` is the *working session*, or the
 *caller session*. Similarly, the pane where `@popup-toggle` runs is referred as
@@ -20,21 +20,21 @@ the *caller pane*. In a *popup session*, you can invoke `@popup-toggle` again to
 close it and return to the *working session*. Closing a *popup session* does not
 kill it; instead, it keeps alive until the program running inside it exits.
 
-In a *working session*, invoking `@popup-toggle` will always open a popup
-window. However, in a *popup session*, only if the specified ID matches the
+In a *working session*, invoking `@popup-toggle` will always open a floating
+pane. However, in a *popup session*, only if the specified ID matches the
 current *popup session*, it will close it. Otherwise, the behavior depends on
 `@popup-toggle-mode`. For example, if you are in *popup session A*, which was
 opened from *working session W*, and you call `@popup-toggle` with an ID
 specified as *B*:
 
-- When `@popup-toggle-mode` is set to `switch`, the *popup window* keeps open,
+- When `@popup-toggle-mode` is set to `switch`, the floating pane stays open,
   but the attached session switches to *popup session B*.
 - When set to `force-close`, *popup session A* is detached, and then the *popup
-  window* closes. This moves the focus back to *working session W*.
-- When set to `force-open`, a nested *popup window* is opened in *popup session
-  A*, and the focus is then attached to *popup session B* in that window.
+  pane* closes. This moves the focus back to *working session W*.
+- When set to `force-open`, a nested floating pane is opened in *popup session
+  A*, and the focus is then attached to *popup session B* in that pane.
 
-In the third case, tmux allows for nearly infinitely nested *popup windows*,
+In the third case, tmux allows for nearly infinitely nested floating panes,
 though this is not particularly useful.
 
 ## ⌨️ Commands
@@ -50,9 +50,13 @@ it's recommended to run them using `tmux run '#{@popup-<command>}'`.
 
 ### `@popup-toggle`
 
-**Description**: The core command to manage *popup sessions*. It supports all
-options of `display-popup` to customize the style and position of *popup
-windows* and the environments of *popup sessions*.
+**Description**: The core command to manage *popup sessions* using floating panes
+created by `new-pane`. Popup width and height (`-w` and `-h`) are translated to
+`new-pane -x` and `new-pane -y`; popup positions (`-x` and `-y`) are translated
+to `new-pane -X` and `new-pane -Y`. `-B` hides the pane border, while `-b`
+selects its border lines. Pane exit behavior follows tmux settings; `-E` is
+accepted for compatibility. Other supported pane options are passed to
+`new-pane`.
 
 The ID of the target *popup session* is generated from `@popup-id-format` or
 taken directly from `--id <id>`. When both are available, `--id` takes
@@ -253,13 +257,13 @@ set -g @popup-on-init '
 
 **Default**: empty
 
-**Description**: Runs in the *caller session* before entering a *popup window*.
+**Description**: Runs in the *caller session* before entering a floating pane.
 
 ### `@popup-after-close`
 
 **Default**: empty
 
-**Description**: Runs in the *caller session* after leaving a *popup window*.
+**Description**: Runs in the *caller session* after leaving a floating pane.
 
 ## 👩‍🍳 Recipes
 
